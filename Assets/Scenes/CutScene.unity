@@ -151,10 +151,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 981104067}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 1000, y: 0}
-  m_SizeDelta: {x: 1940, y: 740}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 7, y: -3.1026917}
+  m_SizeDelta: {x: -388.5923, y: -68.159}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &155049309
 CanvasRenderer:
@@ -187,14 +187,14 @@ MonoBehaviour:
   m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2100000, guid: e73a58f6e2794ae7b1b7e50b7fb811b0, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
+    rgba: 4278387531
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -211,13 +211,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 80
-  m_fontSizeBase: 80
+  m_fontSize: 40
+  m_fontSizeBase: 40
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 0
   m_fontSizeMax: 0
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
@@ -250,7 +250,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 314.01453, y: 265.09793, z: 278.80237, w: 265.67615}
+  m_margin: {x: 10.423737, y: 35.083572, z: 25.039795, w: 37.257362}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -410,7 +410,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &743708789
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -500,14 +500,18 @@ MonoBehaviour:
   frameImage: {fileID: 1762680009}
   frames:
   - image: {fileID: 21300000, guid: a29459be1911a46dd9f3f819e0f78db2, type: 3}
-    text: '*footsteps'
+    text: '. . . . . . . . . . . '
   - image: {fileID: 21300000, guid: 16e6f2b15a6d245c899bbd8b0912d53c, type: 3}
-    text: subject #394 has finally sprouted
+    text: subject #394 has finally sprouted!
+  - image: {fileID: 21300000, guid: 282553fdae8e74fdeae720efdcc19381, type: 3}
+    text: doesn't it seem almost. . . . . . . . alive?
+  - image: {fileID: 21300000, guid: 8566385feb5c04709a45f2350310e45b, type: 3}
+    text: we have to monitor growth. . . . . . .
   - image: {fileID: 21300000, guid: 476909b6a95a3427a87bf534ba71f8bf, type: 3}
-    text: "monitor growth, abort if it grows \ntoo large"
+    text: if subject gets too large. . . abort
   textBox: {fileID: 981104066}
   dialogueText: {fileID: 155049310}
-  charactersPerSecond: 30
+  charactersPerSecond: 12
   secondsPerFrame: 15
   fadeDuration: 0.5
   fadeOverlay: {fileID: 743708789}
@@ -563,9 +567,9 @@ RectTransform:
   m_Father: {fileID: 1287599743}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 970, y: 240}
-  m_SizeDelta: {x: 2000, y: 800}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 15, y: -411}
+  m_SizeDelta: {x: -525.5842, y: -881.9482}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &981104068
 MonoBehaviour:
@@ -580,16 +584,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.92156863}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.89411765}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: e56415403be3f4b09baf6088a65be555, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 19fb33bd2e4534e16967765e9a0b27f3, type: 3}
   m_Type: 0
-  m_PreserveAspect: 1
+  m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -886,7 +890,7 @@ MonoBehaviour:
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -910,7 +914,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0

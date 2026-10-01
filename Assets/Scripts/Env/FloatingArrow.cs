@@ -23,12 +23,16 @@ public class FloatingArrow : MonoBehaviour
     [Tooltip("How much bigger the arrow gets when the mouse is over it.")]
     [SerializeField] private float hoverScale = 1.2f;
  
-    [Header("Click")]
-    [Tooltip("What happens when the arrow is clicked. Hook things up here later.")]
-    [SerializeField] private UnityEvent onClicked;
+    [Header("Unlock")]
+    [Tooltip("The PlayerMover on the Plant.")]
+    [SerializeField] private PlayerMover playerMover;
+    [Tooltip("The circle this arrow belongs to.")]
+    [SerializeField] private Transform spot;
+    [Tooltip("The rooted plant prefab to place on the spot.")]
+    [SerializeField] private Plant rootedPlantPrefab;
     #endregion
 
-     #region Private Fields
+    #region Private Fields
     private Vector3 startPosition;
     private Vector3 startScale;
     private float bobPhase;
@@ -52,7 +56,6 @@ public class FloatingArrow : MonoBehaviour
     private void OnMouseEnter()
     {
         Debug.Log($"{name} hovered");
-        
         transform.localScale = startScale * hoverScale;
     }
  
@@ -63,8 +66,7 @@ public class FloatingArrow : MonoBehaviour
  
     private void OnMouseDown()
     {
-        Debug.Log($"{name} clicked");
-        onClicked.Invoke();
+        Unlock();
     }
     #endregion
 
@@ -81,6 +83,29 @@ public class FloatingArrow : MonoBehaviour
  
         // Spin around the vertical axis, keeping the arrow pointed down
         transform.rotation = Quaternion.Euler(0f, spinAngle, 0f) * Quaternion.Euler(0f, 0f, spriteRotation);
+    }
+    #endregion
+
+    #region Unlock
+ 
+    private void Unlock()
+    {
+        if (!playerMover.TryUnlock())
+        {
+            return;
+        }
+ 
+        // sets the plant on top of the circle
+        float groundHeight = spot.TryGetComponent(out Renderer spotRenderer)
+            ? spotRenderer.bounds.max.y
+            : spot.position.y;
+ 
+        Vector3 position = new Vector3(spot.position.x, groundHeight, spot.position.z);
+ 
+        Plant plant = Instantiate(rootedPlantPrefab, position, Quaternion.identity);
+        plant.Initialize(playerMover, spot);
+ 
+        Destroy(gameObject); // remove the arrow
     }
     #endregion
 }
