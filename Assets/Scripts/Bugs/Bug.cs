@@ -53,6 +53,10 @@ public class Bug : MonoBehaviour
     [Tooltip("How quickly the bug starts and stops. Higher = twitchier.")]
     [SerializeField] private float acceleration = 20f;
 
+    [Header("Hover")]
+    [Tooltip("mouse is over the bug squashed frame")]
+    [SerializeField] private Sprite hoverSprite;
+
     #endregion
 
     #region Private Fields
@@ -61,6 +65,7 @@ public class Bug : MonoBehaviour
 
     private Transform cameraTransform;
     private SpriteRenderer spriteRenderer;
+    private Sprite normalSprite;
 
     private Vector3 homePosition;
     private Vector3 heading;
@@ -76,6 +81,7 @@ public class Bug : MonoBehaviour
     private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
+        normalSprite = spriteRenderer.sprite;
     }
 
     private void Start()
@@ -117,6 +123,19 @@ public class Bug : MonoBehaviour
     private void OnMouseDown()
     {
         Squash();
+    }
+
+    private void OnMouseEnter()
+    {
+        if (hoverSprite != null)
+        {
+            spriteRenderer.sprite = hoverSprite;
+        }
+    }
+
+    private void OnMouseExit()
+    {
+        spriteRenderer.sprite = normalSprite;
     }
     #endregion
 
@@ -284,7 +303,11 @@ public class Bug : MonoBehaviour
     #region Squash
     private void Squash()
     {
-        // Later: play a squash effect, add score, etc.
+        if (ScoreCounter.Instance != null)
+        {
+            ScoreCounter.Instance.AddPoint();
+        }
+        
         Destroy(gameObject);
     }
     #endregion
