@@ -1372,6 +1372,10 @@ PrefabInstance:
       propertyPath: playerMover
       value: 
       objectReference: {fileID: 1332116919}
+    - target: {fileID: 2717422738298980737, guid: 323b547e9b5ba4edc84e479b5bb95f05, type: 3}
+      propertyPath: nextSceneName
+      value: MiniGame1
+      objectReference: {fileID: 0}
     - target: {fileID: 3718223282011101778, guid: 323b547e9b5ba4edc84e479b5bb95f05, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1445,10 +1449,10 @@ SceneRoots:
   - {fileID: 832575519}
   - {fileID: 2143350048}
   - {fileID: 6586789998278286200}
-  - {fileID: 7829389967844289140}
   - {fileID: 7617224020059595460}
   - {fileID: 601556853}
   - {fileID: 1780768512}
+  - {fileID: 7829389967844289140}
   - {fileID: 175023712}
   - {fileID: 685048910}
   - {fileID: 1426634450}
