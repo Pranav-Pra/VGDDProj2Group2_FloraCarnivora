@@ -1428,6 +1428,18 @@ PrefabInstance:
       propertyPath: playerMover
       value: 
       objectReference: {fileID: 1332116919}
+    - target: {fileID: 4429943212137703944, guid: 323b547e9b5ba4edc84e479b5bb95f05, type: 3}
+      propertyPath: m_Color.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4429943212137703944, guid: 323b547e9b5ba4edc84e479b5bb95f05, type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4429943212137703944, guid: 323b547e9b5ba4edc84e479b5bb95f05, type: 3}
+      propertyPath: m_Color.r
+      value: 0.04629445
+      objectReference: {fileID: 0}
     - target: {fileID: 5543815103755725279, guid: 323b547e9b5ba4edc84e479b5bb95f05, type: 3}
       propertyPath: playerMover
       value: 
