@@ -2,36 +2,50 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+// A piece on the 5x5 board. RoundManager gives each one a role:
+//  Fly   - the bug: plans its steps with the keys (WASD, Z save/confirm, X undo)
+//  Ghost - the bug's decoy: moves with WASD inside the 3x3 around the bug, X jumps back to the bug
+//  Hand  - the plant: no keys at all, RoundManager moves it to the cell under the mouse
 public class GridMover : MonoBehaviour
 {
+    public enum Role { Fly, Ghost, Hand }
+
+    // Bug player's keys (shared by Fly and Ghost; the plant only uses the mouse)
+    public const Key UpKey = Key.W;
+    public const Key DownKey = Key.S;
+    public const Key LeftKey = Key.A;
+    public const Key RightKey = Key.D;
+    public const Key ConfirmKey = Key.Z;
+    public const Key UndoKey = Key.X;
+
+    [Tooltip("Cell this piece starts on (only matters for the bug).")]
     public Vector2Int startCell = new Vector2Int(4, 0);
+    [Tooltip("Bug only")]
+    public int maxStep = 2;
 
-    public Key up = Key.W;
-    public Key down = Key.S;
-    public Key left = Key.A;
-    public Key right = Key.D;
+    // ---- runtime state, set by RoundManager / code (hidden from the Inspector) ----
+    [System.NonSerialized] public Role role = Role.Hand;
+    [System.NonSerialized] public Vector2Int cell;
+    [System.NonSerialized] public bool canMove;           // keys only work while this is true
 
-    //for fly
-    public Key confirm = Key.Z;
-    public Key undo = Key.X;
+    // Fly planning
+    [System.NonSerialized] public List<Vector2Int> plan = new List<Vector2Int>();
+    [System.NonSerialized] public Vector2Int pending;     // keys pressed but not saved yet
+    [System.NonSerialized] public bool Decided;          // Z pressed with all points used
+    [System.NonSerialized] public bool specialRound;     // special round: one step only, diagonal or Stay
 
-    public Vector2Int cell;
-    public bool canMove = true;   // set by RoundManager
-    public bool planMode = false;
-    public int maxCost = 2;
-    public List<Vector2Int> plan = new List<Vector2Int>();
-    public Vector2Int pending;    // keys pressed but not saved yet
-    public bool planDone;         // fly pressed Z with all points used
-    public bool specialMode;      // special round: one step only, diagonal or Stay
-
-    public bool limitAround;      // ghost in hand turn: stays inside the 3x3 around limitCenter
-    public Vector2Int limitCenter;
+    // Ghost
+    [System.NonSerialized] public Vector2Int limitCenter; // ghost stays inside the 3x3 around this cell
 
     BoardGrid board;
 
+    void Awake()
+    {
+        board = FindFirstObjectByType<BoardGrid>(); 
+    }
+
     void Start()
     {
-        board = FindFirstObjectByType<BoardGrid>();
         SetCell(startCell);
     }
 
@@ -40,37 +54,30 @@ public class GridMover : MonoBehaviour
         var kb = Keyboard.current;
         if (kb == null || !canMove) return;
 
-        if (planMode)
-        {
-            PlanInput(kb);
-            return;
-        }
-
-        if (Pressed(kb, up)) Step(0, 1);
-        if (Pressed(kb, down)) Step(0, -1);
-        if (Pressed(kb, left)) Step(-1, 0);
-        if (Pressed(kb, right)) Step(1, 0);
-        if (limitAround && Pressed(kb, undo)) SetCell(limitCenter); // ghost: X goes back to the fly
+        if (role == Role.Fly) FlyInput(kb);
+        else if (role == Role.Ghost) GhostInput(kb);
+        // Role.Hand: no keyboard input
     }
 
-    void PlanInput(Keyboard kb)
+    // ---------- Fly: plan the steps ----------
+    void FlyInput(Keyboard kb)
     {
         // vertical key sets y, horizontal key sets x -> two perpendicular keys make a diagonal
         // opposite key cancels that direction (A then D -> nothing)
-        if (Pressed(kb, up)) pending.y = pending.y == -1 ? 0 : 1;
-        if (Pressed(kb, down)) pending.y = pending.y == 1 ? 0 : -1;
-        if (Pressed(kb, left)) pending.x = pending.x == 1 ? 0 : -1;
-        if (Pressed(kb, right)) pending.x = pending.x == -1 ? 0 : 1;
+        if (Pressed(kb, UpKey)) pending.y = pending.y == -1 ? 0 : 1;
+        if (Pressed(kb, DownKey)) pending.y = pending.y == 1 ? 0 : -1;
+        if (Pressed(kb, LeftKey)) pending.x = pending.x == 1 ? 0 : -1;
+        if (Pressed(kb, RightKey)) pending.x = pending.x == -1 ? 0 : 1;
 
-        if (Pressed(kb, undo))
+        if (Pressed(kb, UndoKey))
         {
             if (pending != Vector2Int.zero) pending = Vector2Int.zero;
             else if (plan.Count > 0) plan.RemoveAt(plan.Count - 1);
         }
 
-        if (Pressed(kb, confirm))
+        if (Pressed(kb, ConfirmKey))
         {
-            if (PlanFull()) planDone = true;
+            if (PlanFull()) Decided = true;
             else SavePending();
         }
     }
@@ -79,18 +86,10 @@ public class GridMover : MonoBehaviour
     public bool SavePending()
     {
         bool straight = (pending.x == 0) != (pending.y == 0);
-        if (specialMode && straight)
-        {
-            return false;
-        }
-        if (!specialMode && PlanCost() + Cost(pending) > maxCost)
-        {
-            return false;
-        }
-        if (!InBoard(PlanEnd() + pending))
-        {
-            return false;
-        }
+        if (specialRound && straight) return false;
+        if (!specialRound && PlanCost() + Move(pending) > maxStep) return false;
+        if (!InBoard(PlanEnd() + pending)) return false;
+
         plan.Add(pending);
         pending = Vector2Int.zero;
         return true;
@@ -100,34 +99,15 @@ public class GridMover : MonoBehaviour
     {
         plan.Clear();
         pending = Vector2Int.zero;
-        planDone = false;
+        Decided = false;
     }
 
-    void Step(int dx, int dy)
-    {
-        var next = cell + new Vector2Int(dx, dy);
-        if (limitAround && (Mathf.Abs(next.x - limitCenter.x) > 1 || Mathf.Abs(next.y - limitCenter.y) > 1)) return;
-        if (InBoard(next)) SetCell(next);
-    }
-
-    // Fly turn: where the fly would end up (saved steps + pending step, if it stays on the board)
-    public Vector2Int PreviewCell()
-    {
-        var p = PlanEnd() + pending;
-        return InBoard(p) ? p : PlanEnd();
-    }
-
-    bool Pressed(Keyboard kb, Key k) => k != Key.None && kb[k].wasPressedThisFrame;
-
-    public static int Cost(Vector2Int d) => (d.x != 0 && d.y != 0) ? 2 : 1;
-    public static bool InBoard(Vector2Int p) => p.x >= 0 && p.x < 5 && p.y >= 0 && p.y < 5;
-
-    public bool PlanFull() => specialMode ? plan.Count >= 1 : PlanCost() >= maxCost;
+    public bool PlanFull() => specialRound ? plan.Count >= 1 : PlanCost() >= maxStep;
 
     public int PlanCost()
     {
         int c = 0;
-        foreach (var d in plan) c += Cost(d);
+        foreach (var d in plan) c += Move(d);
         return c;
     }
 
@@ -138,9 +118,38 @@ public class GridMover : MonoBehaviour
         return p;
     }
 
+    // Where the fly would end up (saved steps + pending step, if it stays on the board)
+    public Vector2Int PreviewCell()
+    {
+        var p = PlanEnd() + pending;
+        return InBoard(p) ? p : PlanEnd();
+    }
+
+    // ---------- Ghost: move inside the 3x3 around the fly ----------
+    void GhostInput(Keyboard kb)
+    {
+        if (Pressed(kb, UpKey)) GhostStep(0, 1);
+        if (Pressed(kb, DownKey)) GhostStep(0, -1);
+        if (Pressed(kb, LeftKey)) GhostStep(-1, 0);
+        if (Pressed(kb, RightKey)) GhostStep(1, 0);
+        if (Pressed(kb, UndoKey)) SetCell(limitCenter); // X: back to the fly
+    }
+
+    void GhostStep(int dx, int dy)
+    {
+        var next = cell + new Vector2Int(dx, dy);
+        if (InBoard(next)) SetCell(next);
+    }
+
+    // ---------- shared ----------
     public void SetCell(Vector2Int c)
     {
         cell = c;
-        transform.position = board.CellToWorld(cell);
+        transform.position = board.PieceToWorld(cell); // in front of the 3D board face
     }
+
+    static bool Pressed(Keyboard kb, Key k) => kb[k].wasPressedThisFrame;
+
+    public static int Move(Vector2Int d) => (d.x != 0 && d.y != 0) ? 2 : 1;
+    public static bool InBoard(Vector2Int p) => p.x >= 0 && p.x < 5 && p.y >= 0 && p.y < 5;
 }

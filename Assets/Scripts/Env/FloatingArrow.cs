@@ -73,7 +73,8 @@ public class FloatingArrow : MonoBehaviour
         // Scene-change arrow
         if (!string.IsNullOrEmpty(nextSceneName))
         {
-            SceneManager.LoadScene(nextSceneName);
+            //SceneManager.LoadScene(nextSceneName);
+            SceneLoader.Load(nextSceneName);
             return;
         }
 

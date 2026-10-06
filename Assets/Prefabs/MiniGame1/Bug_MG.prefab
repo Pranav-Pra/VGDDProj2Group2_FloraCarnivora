@@ -11,8 +11,9 @@ GameObject:
   - component: {fileID: 2438712607132580542}
   - component: {fileID: 7946224957865121596}
   - component: {fileID: 8051560159408084621}
+  - component: {fileID: -3620273558645362123}
   m_Layer: 0
-  m_Name: Fly
+  m_Name: Bug_MG
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -121,3 +122,15 @@ MonoBehaviour:
   specialMode: 0
   limitAround: 0
   limitCenter: {x: 0, y: 0}
+--- !u!114 &-3620273558645362123
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5162564917396496826}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 689184e244382024c8da74efcac28c0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'

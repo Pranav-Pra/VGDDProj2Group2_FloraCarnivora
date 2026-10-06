@@ -1,23 +1,34 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
+// Runs the match: fly turn (bug plans with keys) -> hand turn (plant strikes with the mouse) -> settle.
 public class RoundManager : MonoBehaviour
 {
+    [Header("Timing")]
     public float flyTurnTime = 10f;
-    public float handTurnTime = 30f;
-    public float stepDelay = 2f; // seconds between fly steps during settle
+    public float handTurnTime = 30f;   // per fly step
+    public float stepDelay = 2f;       // seconds between fly steps during settle
 
+    [Header("Rules")]
     public int flyMaxHP = 3;
     public int handMaxHP = 3;
     public Vector2Int burgerCell = new Vector2Int(2, 2);
 
+    [Header("Pieces")]
     public GridMover fly;
-    public GridMover hand;
-    public GridMover ghost; // ghostfly: plan preview in fly turn, declaration in hand turn
+    public GridMover hand;   // hidden; just remembers which cell the mouse is aiming at
+    public GridMover ghost;  // bug's decoy: plan preview in fly turn, free move in hand turn
+
+    [Header("Scene")]
     public UIManager ui;
+    public Camera cam;               // the first-person camera; empty = Camera.main
+    public LayerMask boardMask;      // tick only the Board layer
+    public VineController vine;      // rises in the hand turn, smacks on a strike
 
     BoardGrid board;
+    Bug_MG flyBody; // idle squeeze / step squeeze / facing of the bug body (optional)
 
     enum Turn { Fly, Hand, Settle }
     Turn turn;
@@ -32,23 +43,19 @@ public class RoundManager : MonoBehaviour
 
     void Start()
     {
-        if (Keyboard.current == null)
-            Debug.LogWarning("No keyboard found");
-
         board = FindFirstObjectByType<BoardGrid>();
+        if (cam == null) cam = Camera.main;
+        flyBody = fly.GetComponent<Bug_MG>();
 
-        fly.planMode = true;
-        hand.planMode = false;
-        ghost.planMode = false;
+        fly.role = GridMover.Role.Fly;
+        ghost.role = GridMover.Role.Ghost;
+        hand.role = GridMover.Role.Hand;
+        ui.SetVisible(hand, false); // the hand piece is never drawn; the hovered cell breathes instead
 
-        ghost.limitAround = true;
-        ghost.canMove = false;
-        round = 0;
         flyHP = flyMaxHP;
         handHP = handMaxHP;
-        gameOver = false;
-        nextSpecial = false;
         ui.SetHP(flyHP, flyMaxHP, handHP, handMaxHP);
+        if (vine != null) vine.HideInstant(); // game starts on the fly turn: vine already below the screen
         StartFlyTurn();
     }
 
@@ -56,7 +63,6 @@ public class RoundManager : MonoBehaviour
     {
         if (gameOver || turn == Turn.Settle) return;
 
-        var kb = Keyboard.current;
         timer -= Time.deltaTime;
 
         if (turn == Turn.Fly)
@@ -64,19 +70,51 @@ public class RoundManager : MonoBehaviour
             ui.SetFlyTimer(timer / flyTurnTime);
             ui.ShowFlyPlan(fly, special);
             ghost.SetCell(fly.PreviewCell()); // ghost follows the plan (X undo moves it back too)
-            if (fly.planDone) FinishFlyTurn(false);
+            if (fly.Decided) FinishFlyTurn(false);
             else if (timer <= 0) FinishFlyTurn(true);
         }
         else
         {
             ui.SetHandTimer(timer / handTurnTime);
-            bool enter = kb != null && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame);
-            bool skip = kb != null && kb.backspaceKey.wasPressedThisFrame;
-            if (enter) StartCoroutine(Settle(true));      // hand strikes on this step
-            else if (skip || timer <= 0) SkipStep();      // no strike, fly takes this step
+            HandInput();
         }
     }
 
+    // ---------- Hand turn: mouse only ----------
+    void HandInput()
+    {
+        bool hovering = TryGetHoveredCell(out var hovered);
+        if (hovering) hand.SetCell(hovered);      // remembers the target cell for the hit check
+        board.SetHover(hovering, hovered);        // the cell under the mouse breathes
+
+        // left click on a cell = strike, right click = skip this step
+        var mouse = Mouse.current;
+        bool click = hovering && mouse != null && mouse.leftButton.wasPressedThisFrame && !PointerOverUI();
+        bool skip = mouse != null && mouse.rightButton.wasPressedThisFrame;
+
+        if (click)
+        {
+            if (vine != null) vine.PlaySmack();
+            StartCoroutine(Settle(true));
+        }
+        else if (skip || timer <= 0) SkipStep();
+    }
+
+    // Mouse ray -> which board cell is under the cursor
+    bool TryGetHoveredCell(out Vector2Int c)
+    {
+        c = default;
+        var mouse = Mouse.current;
+        if (mouse == null || cam == null) return false;
+        Ray ray = cam.ScreenPointToRay(mouse.position.ReadValue());
+        return Physics.Raycast(ray, out var hit, 200f, boardMask)
+               && board.WorldToCell(hit.point, out c);
+    }
+
+    // Don't strike when the click lands on UI that has Raycast Target on
+    static bool PointerOverUI() => EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+
+    // ---------- Turn flow ----------
     void StartFlyTurn()
     {
         round++;
@@ -84,12 +122,12 @@ public class RoundManager : MonoBehaviour
         turn = Turn.Fly;
         timer = flyTurnTime;
         fly.ResetPlan();
-        fly.specialMode = special;
+        fly.specialRound = special;
         fly.canMove = true;
-        hand.canMove = false;
         ghost.canMove = false;
-        board.SetBreathing(special); // burger's 4 diagonal cells breathe during the special round
-        ui.SetVisible(hand, false); // hand is hidden during the fly turn
+        if (flyBody != null) flyBody.SetIdle(true); // fly player deciding -> idle
+        if (vine != null) vine.Hide();             // vine sinks below the screen during the fly turn
+        board.SetBreathing(special);               // burger's 4 diagonal cells breathe in a special round
         ui.ShowFlyTurn(round, special);
         Debug.Log($"Round {round}: Fly turn" + (special ? " (SPECIAL)" : ""));
     }
@@ -103,7 +141,7 @@ public class RoundManager : MonoBehaviour
         }
         else
         {
-            while (fly.PlanCost() < fly.maxCost) fly.plan.Add(Vector2Int.zero); // unused points = Stay
+            while (fly.PlanCost() < fly.maxStep) fly.plan.Add(Vector2Int.zero); // unused points = Stay
         }
         ui.ShowFlyPlan(fly, special);
         StartHandTurn();
@@ -114,17 +152,15 @@ public class RoundManager : MonoBehaviour
         turn = Turn.Hand;
         timer = handTurnTime;
         fly.canMove = false;
-        hand.canMove = true;
-        hand.SetCell(fly.cell);
         step = 0;
         revealedCost = 0;
         ResetGhost();
-        ui.SetVisible(hand, true);
+        if (vine != null) vine.Show();             // vine rises up for the hand turn
         ui.ShowHandTurn(fly, special);
         Debug.Log($"Round {round}: Hand turn, step 1/{fly.plan.Count}");
     }
 
-    // Ghost goes back to the fly; the fly moves it (WASD) inside the 3x3 to declare. X = back to the fly.
+    // Ghost goes back to the fly; the bug player moves it (WASD) inside the 3x3. X = back to the fly.
     void ResetGhost()
     {
         ghost.limitCenter = fly.cell;
@@ -132,20 +168,21 @@ public class RoundManager : MonoBehaviour
         ghost.canMove = true;
     }
 
-    // Fly takes its current step and the mask reveals it
+    // Fly takes its current step and the hand-side mask reveals it
     void MoveFlyOneStep()
     {
         var d = fly.plan[step];
         fly.SetCell(fly.cell + d);
-        revealedCost += GridMover.Cost(d);
+        if (flyBody != null) flyBody.OnStep(d); // face the way it moved + squeeze once
+        revealedCost += GridMover.Move(d);
         step++;
-        ui.SetReveal(step >= fly.plan.Count ? 1f : (float)revealedCost / fly.maxCost);
+        ui.SetReveal(step >= fly.plan.Count ? 1f : (float)revealedCost / fly.maxStep);
     }
 
     // Normal round: the fly stops as soon as it reaches the burger
     bool StoppedOnBurger() => !special && fly.cell == burgerCell;
 
-    // Backspace / timeout: no strike. Last step (or reached burger) -> settle.
+    // Right click / timeout: no strike. Last step (or reached burger) -> settle.
     void SkipStep()
     {
         MoveFlyOneStep();
@@ -161,8 +198,9 @@ public class RoundManager : MonoBehaviour
     IEnumerator Settle(bool struck)
     {
         turn = Turn.Settle;
-        hand.canMove = false;
         ghost.canMove = false;
+        board.ClearHover();
+        if (flyBody != null) flyBody.SetIdle(false); // walking out the steps: only step squeezes
 
         bool hit = false;
         if (struck)
@@ -185,18 +223,11 @@ public class RoundManager : MonoBehaviour
         if (hit)
         {
             flyHP--;
-            if (special || fly.cell == burgerCell)
-            {
-                fly.SetCell(fly.startCell);
-            }
-        }
-        else if (special)
-        {
-            handHP--;
-            nextSpecial = fly.cell == burgerCell;
+            if (special || fly.cell == burgerCell) fly.SetCell(fly.startCell);
         }
         else if (fly.cell == burgerCell)
         {
+            // normal or special round: the hand only loses HP if the fly ends on the burger
             handHP--;
             nextSpecial = true;
         }
@@ -205,8 +236,6 @@ public class RoundManager : MonoBehaviour
         if (flyHP <= 0 || handHP <= 0)
         {
             gameOver = true;
-            fly.canMove = false;
-            hand.canMove = false;
             board.SetBreathing(false);
             yield break;
         }
