@@ -2,18 +2,17 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-// All screen stuff lives here. RoundManager only calls these methods.
 public class UIManager : MonoBehaviour
 {
     [Header("Top")]
-    public TMP_Text roundText;        // "Round N" / "Special Round N"
-    public TMP_Text turnText;         // "Fly" / "Hand"
+    public TMP_Text roundText;       
+    public TMP_Text turnText;        
 
     [Header("Countdown (one shared bar, value 1 -> 0)")]
-    public Slider timerBar;           // Direction: Left To Right, so the handle walks right -> left as time runs out
-    public Image timerIcon;           // the bar's Handle image: shows who is moving
-    public Sprite flyIcon;            // bug picture (fly turn)
-    public Sprite handIcon;           // plant picture (hand turn)
+    public Slider timerBar;           
+    public Image timerIcon;           
+    public Sprite flyIcon;           
+    public Sprite handIcon;           
     [Tooltip("Tick if the bug picture faces right; it gets mirrored so it walks facing left.")]
     public bool flyIconFacesRight = true;
     [Tooltip("Tick if the plant picture faces right; it gets mirrored so it walks facing left.")]
@@ -27,26 +26,26 @@ public class UIManager : MonoBehaviour
 
     [Header("HP")]
     public TMP_Text flyHpText;
-    public Slider handHpBar;          // hand HP as a bar: full = max HP, empty = 0
-    public TMP_Text handHpText;       // optional, e.g. "3/3" on the bar. Leave empty if not used.
+    public Slider handHpBar;          
+    public TMP_Text handHpText;       
 
     [Header("Fly input box")]
     public TMP_Text flyPlanText;
-    public GameObject flyStepsPanel;  // Steps_Fly: shown in the fly turn, hidden in the hand turn (no mask any more)
+    public GameObject flyStepsPanel;  
 
     [Header("Hand-side fly steps")]
     public TMP_Text handPlanText;
-    public Slider handMask;           // 1 = fully covered, 0 = fully revealed
+    public Slider handMask;           
 
     [Header("Special round hints")]
-    public GameObject specialFlyHint;   // only in special round, fly turn
-    public GameObject specialHandHint;  // only in special round, hand turn
+    public GameObject specialFlyHint;   
+    public GameObject specialHandHint;  
 
     void Awake()
     {
         if (timerBar != null)
         {
-            timerBar.interactable = false; // display only
+            timerBar.interactable = false; 
             timerBar.minValue = 0;
             timerBar.maxValue = 1;
             // don't let the bar swallow clicks meant for the board
@@ -55,7 +54,7 @@ public class UIManager : MonoBehaviour
 
         if (handHpBar != null)
         {
-            handHpBar.interactable = false;  // display only, players can't drag it
+            handHpBar.interactable = false;  
             handHpBar.wholeNumbers = true;
             handHpBar.minValue = 0;
             // don't let the bar's images swallow mouse clicks meant for the board
@@ -87,6 +86,7 @@ public class UIManager : MonoBehaviour
         timerBar.value = 1;
 
         if (flyStepsPanel != null) flyStepsPanel.SetActive(false); // hand player must not see the fly's input
+
         handPlanText.text = PlanText(fly, special, false);
         handMask.value = 1;
 
@@ -94,7 +94,6 @@ public class UIManager : MonoBehaviour
         specialHandHint.SetActive(special);
     }
 
-    // Both turns drive the same bar (RoundManager still calls these two)
     public void SetFlyTimer(float t01) { timerBar.value = Mathf.Clamp01(t01); }
     public void SetHandTimer(float t01) { timerBar.value = Mathf.Clamp01(t01); }
 
