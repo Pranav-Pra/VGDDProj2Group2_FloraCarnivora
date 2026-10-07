@@ -18,6 +18,7 @@ public class SceneLoader : MonoBehaviour
     CanvasGroup group;
     Sprite normalSprite;
 
+    public void LoadScene(string scene) => Load(scene);
     void Awake()
     {
         instance = this;
