@@ -117,7 +117,7 @@ public class CutSceneManager : MonoBehaviour
  
         isLoading = true;
         StopAllCoroutines();
-        SceneManager.LoadScene(gameSceneName);
+        SceneLoader.Load(gameSceneName);
     }
     #endregion
 

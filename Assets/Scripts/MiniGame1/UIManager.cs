@@ -81,7 +81,7 @@ public class UIManager : MonoBehaviour
 
     public void ShowHandTurn(GridMover fly, bool special)
     {
-        turnText.text = "Hand";
+        turnText.text = "Flora";
 
         SetTimerIcon(handIcon, handIconFacesRight, handIconSize, handIconOffset);
         timerBar.value = 1;
@@ -119,8 +119,7 @@ public class UIManager : MonoBehaviour
 
     public void SetHP(int flyHP, int flyMax, int handHP, int handMax)
     {
-        flyHpText.text = $"Fly HP: {flyHP}/{flyMax}";
-
+        //flyHpText.text = $"Fly HP: {flyHP}/{flyMax}";
         if (handHpBar != null)
         {
             handHpBar.maxValue = handMax;

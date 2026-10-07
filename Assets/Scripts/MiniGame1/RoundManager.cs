@@ -44,18 +44,18 @@ public class RoundManager : MonoBehaviour
     void Start()
     {
         board = FindFirstObjectByType<BoardGrid>();
-        if (cam == null) cam = Camera.main;
+        cam = Camera.main;
         flyBody = fly.GetComponent<Bug_MG>();
 
         fly.role = GridMover.Role.Fly;
         ghost.role = GridMover.Role.Ghost;
         hand.role = GridMover.Role.Hand;
-        ui.SetVisible(hand, false); // the hand piece is never drawn; the hovered cell breathes instead
+        ui.SetVisible(hand, false); 
 
         flyHP = flyMaxHP;
         handHP = handMaxHP;
         ui.SetHP(flyHP, flyMaxHP, handHP, handMaxHP);
-        if (vine != null) vine.HideInstant(); // game starts on the fly turn: vine already below the screen
+        vine.HideInstant(); // game starts on the fly turn: vine already below the screen
         StartFlyTurn();
     }
 
