@@ -8,12 +8,12 @@ public class SceneLoader : MonoBehaviour
 {
     static SceneLoader instance;
 
-    public Image bug;                 
-    public Sprite squeezeSprite;      
-    public float totalTime = 3f;      
+    public Image bug;
+    public Sprite squeezeSprite;
+    public float totalTime = 3f;
     public float fadeTime = 0.4f;
-    public float squeezeEvery = 0.6f; 
-    public float squeezeTime = 0.15f; 
+    public float squeezeEvery = 0.6f;
+    public float squeezeTime = 0.15f;
 
     CanvasGroup group;
     Sprite normalSprite;
@@ -23,7 +23,7 @@ public class SceneLoader : MonoBehaviour
     {
         instance = this;
         group = GetComponent<CanvasGroup>();
-        group.alpha = 0f;             
+        group.alpha = 0f;
         group.blocksRaycasts = false;
         normalSprite = bug.sprite;
     }
@@ -31,12 +31,12 @@ public class SceneLoader : MonoBehaviour
     public static void Load(string scene)
     {
         if (instance == null) { SceneManager.LoadScene(scene); return; } // no loading screen in this scene
-        DontDestroyOnLoad(instance.gameObject); // survive the scene change so it can fade out
+        DontDestroyOnLoad(instance.gameObject); 
         instance.StartCoroutine(instance.Loading(scene));
     }
 
     void Update()
-    { 
+    {
         bool squeezed = Time.unscaledTime % squeezeEvery < squeezeTime;
         bug.sprite = squeezed ? squeezeSprite : normalSprite;
     }
@@ -58,7 +58,8 @@ public class SceneLoader : MonoBehaviour
 
     IEnumerator Fade(float from, float to)
     {
-        for (float t = 0f; t < fadeTime; t += Time.unscaledDeltaTime)
+        // step at most 1/30 s per frame, so a laggy frame can't jump past the whole fade
+        for (float t = 0f; t < fadeTime; t += Mathf.Min(Time.unscaledDeltaTime, 1f / 30f))
         {
             group.alpha = Mathf.Lerp(from, to, t / fadeTime);
             yield return null;

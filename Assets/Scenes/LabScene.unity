@@ -867,7 +867,7 @@ MonoBehaviour:
   bug: {fileID: 356292308}
   squeezeSprite: {fileID: 21300000, guid: 0e672c8cc6c5b1b43aed3161b19956bf, type: 3}
   totalTime: 3
-  fadeTime: 0.4
+  fadeTime: 0.6
   squeezeEvery: 0.6
   squeezeTime: 0.3
 --- !u!114 &1131540818
